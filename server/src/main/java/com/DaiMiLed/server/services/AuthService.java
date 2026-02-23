@@ -1,7 +1,13 @@
 package com.DaiMiLed.server.services;
 
+import com.DaiMiLed.server.dtos.AuthResponse;
+import com.DaiMiLed.server.dtos.LoginRequest;
 import com.DaiMiLed.server.dtos.RegisterRequest;
+import com.DaiMiLed.server.exceptions.EmailAlreadyExistsException;
+import com.DaiMiLed.server.exceptions.InvalidCredentialsException;
 import com.DaiMiLed.server.exceptions.RoleNotFoundException;
+import com.DaiMiLed.server.exceptions.UsernameAlreadyExistsException;
+import com.DaiMiLed.server.jwt.JwtProvider;
 import com.DaiMiLed.server.models.Role;
 import com.DaiMiLed.server.models.RoleName;
 import com.DaiMiLed.server.models.User;
@@ -20,25 +26,26 @@ public class AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
 
-    public void registerStudent(RegisterRequest request) {
-        registerWithRole(request, RoleName.ROLE_STUDENT);
+    public AuthResponse registerStudent(RegisterRequest request) {
+        return registerWithRole(request, RoleName.ROLE_STUDENT);
     }
 
-    public void registerTeacher(RegisterRequest request) {
-        registerWithRole(request, RoleName.ROLE_TEACHER);
+    public AuthResponse registerTeacher(RegisterRequest request) {
+        return registerWithRole(request, RoleName.ROLE_TEACHER);
     }
 
-    private void registerWithRole(RegisterRequest request, RoleName roleName) {
+    private AuthResponse registerWithRole(RegisterRequest request, RoleName roleName) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
             log.warn("Registration attempt with already existing email: {}", request.getEmail());
-            throw new RuntimeException("Email already in use");
+            throw new EmailAlreadyExistsException(request.getEmail());
         }
 
         if (userRepository.existsByUsername(request.getUsername())) {
             log.warn("Registration attempt with already existing username: {}", request.getUsername());
-            throw new RuntimeException("Username already taken");
+            throw new UsernameAlreadyExistsException(request.getUsername());
         }
 
         Role role = roleRepository.findByName(roleName)
@@ -58,5 +65,31 @@ public class AuthService {
         );
 
         userRepository.save(user);
+
+        String token = jwtProvider.generateToken(user.getUsername(), user.getEmail());
+        log.info("User registered and authenticated: {}", user.getUsername());
+
+        return new AuthResponse(token, roleName + " registered and authenticated successfully");
+    }
+    
+    public AuthResponse login(LoginRequest request) {
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseGet(() -> userRepository.findByEmail(request.getUsername())
+                        .orElse(null));
+
+        if (user == null) {
+            log.warn("Login attempt with non-existent username or email: {}", request.getUsername());
+            throw new InvalidCredentialsException();
+        }
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            log.warn("Login attempt with incorrect password for username/email: {}", request.getUsername());
+            throw new InvalidCredentialsException();
+        }
+
+        String token = jwtProvider.generateToken(user.getUsername(), user.getEmail());
+        log.info("User successfully logged in and authenticated: {}", user.getUsername());
+
+        return new AuthResponse(token, "Login successful");
     }
 }

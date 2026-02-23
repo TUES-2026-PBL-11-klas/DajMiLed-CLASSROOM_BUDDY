@@ -2,12 +2,10 @@ package com.DaiMiLed.server.models;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "users")
 @Getter
-@NoArgsConstructor
 public class User {
 
     @Id
@@ -23,7 +21,7 @@ public class User {
     @Column(nullable = false)
     private String passwordHash;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
