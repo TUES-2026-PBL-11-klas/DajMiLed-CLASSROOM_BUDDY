@@ -1,1 +1,37 @@
 @import "tailwindcss";
+
+@theme {
+    --color-main: #0F5B55;
+    --color-secondary: #D69E2E;
+
+    --color-app-bg: #F7F5F0;
+    --color-surface: #FFFFFF;
+
+    --color-ink: #2D3748;
+    --color-graphite: #718096;
+
+    --color-border-subtle: #E2E8F0;
+    --shadow-soft: 0 4px 20px rgba(15, 91, 85, 0.08);
+
+    --radius-card: 12px;
+    --radius-btn: 8px;
+    --radius-input: 6px;
+
+    --font-heading: "Fraunces", serif;
+    --font-body: "Inter", sans-serif;
+}
+
+body {
+    background-color: var(--color-app-bg);
+    color: var(--color-ink);
+    font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--font-heading);
+}
