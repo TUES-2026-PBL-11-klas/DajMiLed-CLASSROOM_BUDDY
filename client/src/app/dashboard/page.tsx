@@ -40,6 +40,9 @@ export default function DashboardPage() {
                 <Link href="/dashboard" className="font-heading text-2xl font-bold text-main">
                     Classroom Buddy
                 </Link>
+                <Link href="/dashboard/upload" className="text-sm font-bold uppercase tracking-wider text-main hover:underline">
+                    Upload Material
+                </Link>
             </header>
 
             <main className="flex-1 px-8 py-16 lg:px-16 mx-auto w-full max-w-7xl">
@@ -82,6 +85,12 @@ export default function DashboardPage() {
                     ))}
                 </div>
             </main>
+
+            <footer className="py-12 bg-app-bg text-center flex flex-col items-center gap-2">
+                <p className="text-sm font-bold uppercase tracking-wider text-main">Classroom Buddy</p>
+                <p className="text-sm font-bold uppercase tracking-wider text-main opacity-80">Designed for the pursuit of excellence.</p>
+
+            </footer>
         </div>
     );
 }

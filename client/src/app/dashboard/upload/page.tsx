@@ -6,9 +6,9 @@ import { useState } from "react";
 export default function UploadMaterialPage() {
     const [formData, setFormData] = useState({
         title: "",
-        uploadUrl: "",
         subject: "computer-science"
     });
+    const [file, setFile] = useState<File | null>(null);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -17,22 +17,30 @@ export default function UploadMaterialPage() {
         setFormData(prev => ({ ...prev, [id]: value }));
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setFile(e.target.files[0]);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!file) {
+            alert("Please select a file to upload.");
+            return;
+        }
         setIsSubmitting(true);
 
-        // Mocking an upload delay
-        console.log("Uploading Material:", formData);
+        console.log("Uploading Material:", formData, "File:", file.name);
 
         setTimeout(() => {
             setIsSubmitting(false);
-            alert("Material details captured! Ready for database population.");
-        }, 1000);
+            alert(`Material "${formData.title}" and file "${file.name}" captured! Ready for Cloudinary integration.`);
+        }, 1500);
     };
 
     return (
         <div className="flex min-h-screen flex-col bg-app-bg text-ink font-body">
-            {/* Header */}
             <header className="sticky top-0 z-50 flex h-20 items-center justify-between border-b border-border-subtle bg-surface/80 px-8 backdrop-blur-md lg:px-16">
                 <Link href="/dashboard" className="font-heading text-2xl font-bold text-main">
                     Classroom Buddy
@@ -48,13 +56,12 @@ export default function UploadMaterialPage() {
                         Shelve New Material
                     </h1>
                     <p className="text-graphite text-lg">
-                        Contribute to the collective knowledge. Add a title and link to your documentation.
+                        Contribute to the collective knowledge. Upload your academic documentation directly.
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-6 rounded-[24px] border border-border-subtle bg-surface p-8 shadow-soft">
-                    {/* Material Title */}
-                    <div className="flex flex-col gap-1">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-8 rounded-[24px] border border-border-subtle bg-surface p-10 shadow-soft">
+                    <div className="flex flex-col gap-2">
                         <label htmlFor="title" className="text-xs font-bold uppercase tracking-wider text-ink">
                             Material Title
                         </label>
@@ -65,45 +72,61 @@ export default function UploadMaterialPage() {
                             onChange={handleChange}
                             placeholder="e.g., Intro to Neural Networks - Lecture Notes"
                             required
-                            className="h-12 rounded-input border border-border-subtle bg-surface px-4 text-ink outline-none focus:ring-2 focus:ring-main/20 font-medium"
+                            className="h-14 rounded-input border border-border-subtle bg-surface px-4 text-ink outline-none focus:ring-2 focus:ring-main/20 font-medium transition-all"
                         />
                     </div>
 
-                    {/* Subject Selection */}
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col gap-2">
                         <label htmlFor="subject" className="text-xs font-bold uppercase tracking-wider text-ink">
                             Academic Subject
                         </label>
-                        <select
-                            id="subject"
-                            value={formData.subject}
-                            onChange={handleChange}
-                            className="h-12 rounded-input border border-border-subtle bg-surface px-4 text-ink outline-none focus:ring-2 focus:ring-main/20 font-medium appearance-none"
-                        >
-                            <option value="computer-science">Computer Science</option>
-                            <option value="mathematics">Mathematics</option>
-                            <option value="physics">Physics</option>
-                            <option value="literature">Literature & Arts</option>
-                        </select>
+                        <div className="relative">
+                            <select
+                                id="subject"
+                                value={formData.subject}
+                                onChange={handleChange}
+                                className="w-full h-14 rounded-input border border-border-subtle bg-surface px-4 text-ink outline-none focus:ring-2 focus:ring-main/20 font-medium appearance-none transition-all"
+                            >
+                                <option value="computer-science">Computer Science</option>
+                                <option value="mathematics">Mathematics</option>
+                                <option value="physics">Physics</option>
+                                <option value="literature">Literature & Arts</option>
+                            </select>
+                            <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-graphite">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* Upload URL */}
-                    <div className="flex flex-col gap-1">
-                        <label htmlFor="uploadUrl" className="text-xs font-bold uppercase tracking-wider text-ink">
-                            Resource URL
+                    <div className="flex flex-col gap-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-ink">
+                            Upload Document (PDF, Image)
                         </label>
-                        <input
-                            id="uploadUrl"
-                            type="url"
-                            value={formData.uploadUrl}
-                            onChange={handleChange}
-                            placeholder="https://example.com/materials/doc.pdf"
-                            required
-                            className="h-12 rounded-input border border-border-subtle bg-surface px-4 text-ink outline-none focus:ring-2 focus:ring-main/20 font-medium"
-                        />
-                        <p className="mt-1 text-[10px] text-graphite/60 italic uppercase tracking-wider font-bold">
-                            Direct links to PDFs, drives, or slides are preferred.
-                        </p>
+                        <div className={`relative group border-2 border-dashed ${file ? 'border-main bg-main/5' : 'border-border-subtle hover:border-main/50'} rounded-[24px] transition-all p-8 flex flex-col items-center justify-center text-center cursor-pointer`}>
+                            <input
+                                type="file"
+                                onChange={handleFileChange}
+                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                            />
+
+                            <div className={`h-16 w-16 rounded-2xl ${file ? 'bg-main text-white' : 'bg-app-bg text-main'} flex items-center justify-center mb-4 transition-colors`}>
+                                {file ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" x2="12" y1="3" y2="15" /></svg>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col gap-1">
+                                <p className="font-bold text-ink transition-colors group-hover:text-main">
+                                    {file ? file.name : "Click to select or drag and drop"}
+                                </p>
+                                <p className="text-xs text-graphite">
+                                    {file ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : "PDF, Image or Document (max 10MB)"}
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
                     <button
@@ -122,6 +145,12 @@ export default function UploadMaterialPage() {
                     </button>
                 </form>
             </main>
+
+            <footer className="py-12 bg-app-bg text-center flex flex-col items-center gap-2">
+                <p className="text-sm font-bold uppercase tracking-wider text-main">Classroom Buddy</p>
+                <p className="text-sm font-bold uppercase tracking-wider text-main opacity-80">Designed for the pursuit of excellence.</p>
+
+            </footer>
         </div>
     );
 }
