@@ -78,5 +78,31 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
+    @ExceptionHandler(ObjectNotFound.class)
+    public ResponseEntity<ApiResponse> ObjectNotFound(Exception ex) {
+        log.error("Object not found", ex);
+
+        ApiResponse response = new ApiResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Object not found",
+                null
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(UploadExeption.class)
+    public ResponseEntity<ApiResponse> UploadExeption(Exception ex) {
+        log.error("Upload Failed", ex);
+
+        ApiResponse response = new ApiResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Upload Failed",
+                null
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
 }
 
