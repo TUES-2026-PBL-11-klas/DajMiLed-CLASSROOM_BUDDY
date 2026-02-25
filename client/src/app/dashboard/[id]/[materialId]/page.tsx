@@ -36,7 +36,7 @@ export default function MaterialDetailsPage({ params }: { params: Promise<{ id: 
                     Classroom Buddy
                 </Link>
                 <div className="flex items-center gap-6">
-                    <Link href={`/dashboard/${subjectId}`} className="h-10 px-6 rounded-btn border border-border-subtle bg-surface text-sm font-bold transition-all hover:bg-main hover:text-white hover:border-main flex items-center shadow-soft">
+                    <Link href={`/dashboard/${subjectId}`} className="text-sm font-bold uppercase tracking-wider text-main hover:underline">
                         Back to {subjectId.replace("-", " ")}
                     </Link>
                 </div>
@@ -88,6 +88,12 @@ export default function MaterialDetailsPage({ params }: { params: Promise<{ id: 
                     </div>
                 </div>
             </main>
+
+            <footer className="py-12 bg-app-bg text-center flex flex-col items-center gap-2">
+                <p className="text-sm font-bold uppercase tracking-wider text-main">Classroom Buddy</p>
+                <p className="text-sm font-bold uppercase tracking-wider text-main opacity-80">Designed for the pursuit of excellence.</p>
+
+            </footer>
         </div>
     );
 }

@@ -34,11 +34,11 @@ export default function SubjectDetailsPage({ params }: { params: Promise<{ id: s
                 <Link href="/dashboard" className="font-heading text-2xl font-bold text-main">
                     Classroom Buddy
                 </Link>
-                <div className="flex items-center gap-6">
-                    <Link href="/dashboard/upload" className="text-sm font-bold text-ink hover:text-main transition-colors hidden md:block">
+                <div className="flex items-center gap-8">
+                    <Link href="/dashboard/upload" className="text-sm font-bold uppercase tracking-wider text-main hover:underline hidden md:block">
                         Upload Material
                     </Link>
-                    <Link href="/dashboard" className="h-10 px-6 rounded-btn border border-border-subtle bg-surface text-sm font-bold transition-all hover:bg-main hover:text-white hover:border-main flex items-center shadow-soft">
+                    <Link href="/dashboard" className="text-sm font-bold uppercase tracking-wider text-main hover:underline">
                         Back to Repository
                     </Link>
                 </div>
@@ -109,6 +109,12 @@ export default function SubjectDetailsPage({ params }: { params: Promise<{ id: s
                     )}
                 </div>
             </main>
+
+            <footer className="py-12 bg-app-bg text-center flex flex-col items-center gap-2">
+                <p className="text-sm font-bold uppercase tracking-wider text-main">Classroom Buddy</p>
+                <p className="text-sm font-bold uppercase tracking-wider text-main opacity-80">Designed for the pursuit of excellence.</p>
+
+            </footer>
         </div>
     );
 }
