@@ -3,6 +3,8 @@ package com.DaiMiLed.server.services.Materials.MaterialsImpl;
 import java.io.IOException;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.DaiMiLed.server.dtos.Materials.MaterialRequest;
@@ -65,5 +67,9 @@ public class MaterialsServiceImpl implements MaterialsService{
 
         return material.getId();
     }
-    
+
+    @Override
+    public Page<Material> getMaterialsBySubject(String subject, Pageable pageable) {
+        return materialsRepository.findBySubjectWithUser(subject, pageable);
+    }
 }
