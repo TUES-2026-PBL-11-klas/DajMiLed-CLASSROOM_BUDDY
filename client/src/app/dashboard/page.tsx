@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { JSX } from "react";
+import { JSX, useEffect, useState } from "react";
 
 interface Subject {
     id: string;
@@ -11,12 +11,12 @@ interface Subject {
     icon: JSX.Element;
 }
 
-const SUBJECTS: Subject[] = [
+const INITIAL_SUBJECTS: Subject[] = [
     {
         id: "computer-science",
         name: "Computer Science",
         description: "Algorithms, data structures, and the theoretical foundations of computation.",
-        resourcesCount: 142,
+        resourcesCount: 0,
         icon: (
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2" /><line x1="8" x2="16" y1="21" y2="21" /><line x1="12" x2="12" y1="17" y2="21" /></svg>
         ),
@@ -25,19 +25,68 @@ const SUBJECTS: Subject[] = [
         id: "mathematics",
         name: "Mathematics",
         description: "Calculus, linear algebra, statistics, and discrete mathematics essentials.",
-        resourcesCount: 89,
+        resourcesCount: 0,
         icon: (
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="M8 12h8" /><path d="M12 8v8" /></svg>
         ),
     },
+    {
+        id: "physics",
+        name: "Physics",
+        description: "Mechanics, thermodynamics, and the underlying laws of the universe.",
+        resourcesCount: 0,
+        icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+        ),
+    },
+    {
+        id: "literature",
+        name: "Literature & Arts",
+        description: "Critical reading, writing, and exploration of human creativity.",
+        resourcesCount: 0,
+        icon: (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" /><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" /></svg>
+        ),
+    }
 
 ];
 
 export default function DashboardPage() {
+    const [subjects, setSubjects] = useState<Subject[]>(INITIAL_SUBJECTS);
+
+    useEffect(() => {
+        const fetchCounts = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
+
+            const updatedSubjects = await Promise.all(
+                INITIAL_SUBJECTS.map(async (subject) => {
+                    try {
+                        const res = await fetch(`${apiUrl}/api/material/${subject.id}?size=1`, {
+                            headers: { "Authorization": `Bearer ${token}` }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            return { ...subject, resourcesCount: data.totalElements || data.content?.length || 0 };
+                        }
+                    } catch (e) {
+                        console.error("Failed to fetch count for", subject.id);
+                    }
+                    return subject;
+                })
+            );
+
+            setSubjects(updatedSubjects);
+        };
+        fetchCounts();
+    }, []);
+
     return (
         <div className="flex min-h-screen flex-col bg-app-bg text-ink font-body">
             <header className="sticky top-0 z-50 flex h-20 items-center justify-between border-b border-border-subtle bg-surface/80 px-8 backdrop-blur-md lg:px-16">
-                <Link href="/dashboard" className="font-heading text-2xl font-bold text-main">
+                <Link href="/" className="font-heading text-2xl font-bold text-main">
                     Classroom Buddy
                 </Link>
                 <Link href="/dashboard/upload" className="text-sm font-bold uppercase tracking-wider text-main hover:underline">
@@ -56,7 +105,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                    {SUBJECTS.map((subject) => (
+                    {subjects.map((subject) => (
                         <Link
                             key={subject.id}
                             href={`/dashboard/${subject.id}`}
@@ -74,7 +123,7 @@ export default function DashboardPage() {
                             </p>
 
                             <div className="mt-auto flex items-center justify-between border-t border-border-subtle/50 pt-6">
-                                <span className="text-xs font-bold uppercase tracking-widest text-graphite">
+                                <span className="text-xs font-bold uppercase tracking-widest text-graphite transition-colors group-hover:text-ink">
                                     {subject.resourcesCount} Resources
                                 </span>
                                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-app-bg text-main transition-transform duration-300 group-hover:translate-x-2 group-hover:bg-main/10">

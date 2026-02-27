@@ -32,7 +32,7 @@ export default function MaterialDetailsPage({ params }: { params: Promise<{ id: 
     return (
         <div className="flex min-h-screen flex-col bg-app-bg text-ink font-body">
             <header className="sticky top-0 z-50 flex h-20 items-center justify-between border-b border-border-subtle bg-surface/80 px-8 backdrop-blur-md lg:px-16">
-                <Link href="/dashboard" className="font-heading text-2xl font-bold text-main">
+                <Link href="/" className="font-heading text-2xl font-bold text-main">
                     Classroom Buddy
                 </Link>
                 <div className="flex items-center gap-6">

@@ -2,8 +2,14 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 export default function HomePage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem("token"));
+  }, []);
   return (
     <div className="flex min-h-screen flex-col bg-app-bg text-ink font-body selection:bg-main/20">
       <header className="fixed top-0 z-50 w-full border-b border-border-subtle bg-surface/80 backdrop-blur-md">
@@ -17,12 +23,20 @@ export default function HomePage() {
             </span>
           </div>
           <nav className="flex items-center gap-6">
-            <Link href="/login" className="text-sm font-bold text-ink hover:text-main transition-colors">
-              Sign In
-            </Link>
-            <Link href="/register" className="h-10 px-6 rounded-btn bg-main text-sm font-bold text-white transition-all hover:bg-main/90 shadow-soft flex items-center">
-              Get Started
-            </Link>
+            {!isLoggedIn ? (
+              <>
+                <Link href="/login" className="text-sm font-bold text-ink hover:text-main transition-colors">
+                  Sign In
+                </Link>
+                <Link href="/register" className="h-10 px-6 rounded-btn bg-main text-sm font-bold text-white transition-all hover:bg-main/90 shadow-soft flex items-center">
+                  Get Started
+                </Link>
+              </>
+            ) : (
+              <Link href="/dashboard" className="h-10 px-6 rounded-btn bg-main text-sm font-bold text-white transition-all hover:bg-main/90 shadow-soft flex items-center">
+                Dashboard
+              </Link>
+            )}
           </nav>
         </div>
       </header>
