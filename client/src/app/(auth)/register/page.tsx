@@ -2,20 +2,25 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { CAMPUS_QUOTES } from "@/lib/quotes";
 
 export default function RegisterPage() {
+    const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [activeQuote, setActiveQuote] = useState("");
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const [formData, setFormData] = useState({
-        name: "",
+        username: "",
         email: "",
         password: "",
-        confirmPassword: ""
+        confirmPassword: "",
+        role: "ROLE_STUDENT"
     });
 
     useEffect(() => {
@@ -23,22 +28,52 @@ export default function RegisterPage() {
         setActiveQuote(CAMPUS_QUOTES[randomIndex]);
     }, []);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { id, value } = e.target;
         setFormData(prev => ({ ...prev, [id]: value }));
         if (error) setError("");
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsLoading(true);
+        setError("");
+        setSuccess("");
 
         if (formData.password !== formData.confirmPassword) {
             setError("Passwords do not match");
+            setIsLoading(false);
             return;
         }
 
-        setError("");
-        console.log("Registering User:", formData);
+        try {
+            const { confirmPassword, ...registerData } = formData;
+
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+            const response = await fetch(`${apiUrl}/api/auth/register`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(registerData),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                setSuccess("Account created successfully! Redirecting to login...");
+                setTimeout(() => {
+                    router.push("/login");
+                }, 2000);
+            } else {
+                setError(data.message || "Registration failed. Please try again.");
+            }
+        } catch (err) {
+            setError("Cannot connect to the server. Is it running?");
+            console.error(err);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -59,16 +94,27 @@ export default function RegisterPage() {
                     </p>
 
                     <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+                        {error && (
+                            <div className="p-3 bg-red-100 border border-red-200 text-red-600 rounded-lg text-sm font-medium">
+                                {error}
+                            </div>
+                        )}
+                        {success && (
+                            <div className="p-3 bg-green-100 border border-green-200 text-green-600 rounded-lg text-sm font-medium">
+                                {success}
+                            </div>
+                        )}
+
                         <div className="flex flex-col gap-1">
-                            <label htmlFor="name" className="text-xs font-bold uppercase tracking-wider text-ink">
-                                Full Name
+                            <label htmlFor="username" className="text-xs font-bold uppercase tracking-wider text-ink">
+                                Username
                             </label>
                             <input
-                                id="name"
+                                id="username"
                                 type="text"
-                                value={formData.name}
+                                value={formData.username}
                                 onChange={handleChange}
-                                placeholder="Enter your name"
+                                placeholder="Choose a username"
                                 required
                                 className="h-12 rounded-input border border-border-subtle bg-surface px-4 text-ink outline-none focus:ring-2 focus:ring-main/20 font-medium"
                             />
@@ -87,6 +133,21 @@ export default function RegisterPage() {
                                 required
                                 className="h-12 rounded-input border border-border-subtle bg-surface px-4 text-ink outline-none focus:ring-2 focus:ring-main/20 font-medium"
                             />
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                            <label htmlFor="role" className="text-xs font-bold uppercase tracking-wider text-ink">
+                                I am a...
+                            </label>
+                            <select
+                                id="role"
+                                value={formData.role}
+                                onChange={handleChange}
+                                className="h-12 rounded-input border border-border-subtle bg-surface px-4 text-ink outline-none focus:ring-2 focus:ring-main/20 font-medium appearance-none"
+                            >
+                                <option value="ROLE_STUDENT">Student</option>
+                                <option value="ROLE_TEACHER">Teacher</option>
+                            </select>
                         </div>
 
                         <div className="flex flex-col gap-1">
@@ -120,10 +181,9 @@ export default function RegisterPage() {
 
                         <div className="flex flex-col gap-1">
                             <div className="flex justify-between items-center">
-                                <label htmlFor="confirmPassword" className={`text-xs font-bold uppercase tracking-wider ${error ? 'text-red-500' : 'text-ink'}`}>
+                                <label htmlFor="confirmPassword" className={`text-xs font-bold uppercase tracking-wider ${error === "Passwords do not match" ? 'text-red-500' : 'text-ink'}`}>
                                     Confirm Password
                                 </label>
-                                {error && <span className="text-[10px] font-bold text-red-500 uppercase tracking-tighter">{error}</span>}
                             </div>
                             <div className="relative">
                                 <input
@@ -133,7 +193,7 @@ export default function RegisterPage() {
                                     onChange={handleChange}
                                     placeholder="Repeat your password"
                                     required
-                                    className={`h-12 w-full rounded-input border bg-surface px-4 pr-12 text-ink outline-none transition-all font-medium ${error ? 'border-red-500 focus:ring-red-500/10' : 'border-border-subtle focus:ring-2 focus:ring-main/20'}`}
+                                    className={`h-12 w-full rounded-input border bg-surface px-4 pr-12 text-ink outline-none transition-all font-medium ${error === "Passwords do not match" ? 'border-red-500 focus:ring-red-500/10' : 'border-border-subtle focus:ring-2 focus:ring-main/20'}`}
                                 />
                                 <button
                                     type="button"
@@ -152,9 +212,10 @@ export default function RegisterPage() {
 
                         <button
                             type="submit"
-                            className="mt-4 h-12 rounded-btn bg-main font-bold text-white transition-all hover:bg-main/90 shadow-soft active:scale-[0.98]"
+                            disabled={isLoading}
+                            className={`mt-4 h-12 rounded-btn bg-main font-bold text-white transition-all shadow-soft active:scale-[0.98] ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-main/90'}`}
                         >
-                            Shelve My Account
+                            {isLoading ? "Shelving..." : "Shelve My Account"}
                         </button>
                     </form>
 

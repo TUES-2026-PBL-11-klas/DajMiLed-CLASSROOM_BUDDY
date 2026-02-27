@@ -2,15 +2,19 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { CAMPUS_QUOTES } from "@/lib/quotes";
 
 export default function LoginPage() {
+    const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [activeQuote, setActiveQuote] = useState("");
+    const [error, setError] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const [formData, setFormData] = useState({
-        email: "",
+        username: "",
         password: ""
     });
 
@@ -22,11 +26,38 @@ export default function LoginPage() {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
         setFormData(prev => ({ ...prev, [id]: value }));
+        if (error) setError("");
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log("Logging in User:", formData);
+        setIsLoading(true);
+        setError("");
+
+        try {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+            const response = await fetch(`${apiUrl}/api/auth/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.setItem("token", data.data.token);
+                router.push("/dashboard");
+            } else {
+                setError(data.message || "Login failed. Please check your credentials.");
+            }
+        } catch (err) {
+            setError("Cannot connect to the server. Is it running?");
+            console.error(err);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -47,16 +78,22 @@ export default function LoginPage() {
                     </p>
 
                     <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+                        {error && (
+                            <div className="p-3 bg-red-100 border border-red-200 text-red-600 rounded-lg text-sm font-medium">
+                                {error}
+                            </div>
+                        )}
+
                         <div className="flex flex-col gap-1">
-                            <label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-ink">
-                                Email Address
+                            <label htmlFor="username" className="text-xs font-bold uppercase tracking-wider text-ink">
+                                Username
                             </label>
                             <input
-                                id="email"
-                                type="email"
-                                value={formData.email}
+                                id="username"
+                                type="text"
+                                value={formData.username}
                                 onChange={handleChange}
-                                placeholder="university@email.com"
+                                placeholder="Enter your username"
                                 required
                                 className="h-12 rounded-input border border-border-subtle bg-surface px-4 text-ink outline-none focus:ring-2 focus:ring-main/20 font-medium"
                             />
@@ -93,9 +130,10 @@ export default function LoginPage() {
 
                         <button
                             type="submit"
-                            className="mt-4 h-12 rounded-btn bg-main font-bold text-white transition-all hover:bg-main/90 shadow-soft active:scale-[0.98]"
+                            disabled={isLoading}
+                            className={`mt-4 h-12 rounded-btn bg-main font-bold text-white transition-all shadow-soft active:scale-[0.98] ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-main/90'}`}
                         >
-                            Open the Vault
+                            {isLoading ? "Unlocking..." : "Open the Vault"}
                         </button>
                     </form>
 

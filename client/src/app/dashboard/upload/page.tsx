@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function UploadMaterialPage() {
+    const router = useRouter();
     const [formData, setFormData] = useState({
         title: "",
         subject: "computer-science"
@@ -11,6 +13,13 @@ export default function UploadMaterialPage() {
     const [file, setFile] = useState<File | null>(null);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            router.push("/login");
+        }
+    }, [router]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { id, value } = e.target;
@@ -31,18 +40,47 @@ export default function UploadMaterialPage() {
         }
         setIsSubmitting(true);
 
-        console.log("Uploading Material:", formData, "File:", file.name);
+        try {
+            const formDataToSend = new FormData();
+            formDataToSend.append("subject", formData.subject);
+            formDataToSend.append("file", file);
 
-        setTimeout(() => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("You are not logged in!");
+                setIsSubmitting(false);
+                return;
+            }
+
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
+            const response = await fetch(`${apiUrl}/api/material/upload`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                },
+                body: formDataToSend,
+            });
+
+            if (response.ok) {
+                alert(`Material "${formData.title}" uploaded successfully!`);
+                setFormData({ title: "", subject: "computer-science" });
+                setFile(null);
+            } else {
+                const errorData = await response.json().catch(() => null);
+                alert(`Failed to upload: ${errorData?.message || response.statusText}`);
+            }
+        } catch (error) {
+            console.error("Upload error:", error);
+            alert("A network error occurred while uploading. Please check the backend connection.");
+        } finally {
             setIsSubmitting(false);
-            alert(`Material "${formData.title}" and file "${file.name}" captured! Ready for Cloudinary integration.`);
-        }, 1500);
+        }
     };
 
     return (
         <div className="flex min-h-screen flex-col bg-app-bg text-ink font-body">
             <header className="sticky top-0 z-50 flex h-20 items-center justify-between border-b border-border-subtle bg-surface/80 px-8 backdrop-blur-md lg:px-16">
-                <Link href="/dashboard" className="font-heading text-2xl font-bold text-main">
+                <Link href="/" className="font-heading text-2xl font-bold text-main">
                     Classroom Buddy
                 </Link>
                 <Link href="/dashboard" className="text-sm font-bold uppercase tracking-wider text-main hover:underline">
