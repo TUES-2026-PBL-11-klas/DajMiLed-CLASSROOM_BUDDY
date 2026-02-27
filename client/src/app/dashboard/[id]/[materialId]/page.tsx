@@ -1,33 +1,125 @@
 "use client";
 
 import Link from "next/link";
-import { use } from "react";
+import { use, useEffect, useState } from "react";
 
-const MOCK_MATERIALS: Record<string, { id: string; title: string; course: string; author: string; date: string; url: string; }[]> = {
-    "computer-science": [
-        { id: "cs1", title: "Intro to Neural Networks - Lecture Notes", course: "AI 101", author: "Campus Scholar", date: "Feb 23, 2026", url: "#" },
-        { id: "cs2", title: "Data Structures Cheatsheet", course: "CS 202", author: "Alex Chen", date: "Feb 20, 2026", url: "#" },
-        { id: "cs3", title: "Rust Memory Management Guide", course: "Systems Prog", author: "Sarah J.", date: "Feb 15, 2026", url: "#" },
-    ],
-    "mathematics": [
-        { id: "m1", title: "Calculus III Formula Sheet", course: "Calc 3", author: "Campus Scholar", date: "Feb 10, 2026", url: "#" },
-        { id: "m2", title: "Linear Algebra Exam Prep", course: "Math 210", author: "David W.", date: "Jan 28, 2026", url: "#" },
-    ]
-};
+interface MaterialResponse {
+    id: number;
+    subject: string;
+    url: string;
+    createdAt: string;
+    username: string;
+}
 
 export default function MaterialDetailsPage({ params }: { params: Promise<{ id: string, materialId: string }> }) {
     const unwrappedParams = use(params);
     const subjectId = unwrappedParams.id;
     const materialId = unwrappedParams.materialId;
 
-    const materialsForSubject = MOCK_MATERIALS[subjectId] || [];
-    const materialInfo = materialsForSubject.find(m => m.id === materialId) || {
-        title: "Unknown Material",
-        course: "Unknown",
-        author: "Unknown User",
-        date: "Unknown Date",
-        url: "#"
+    const [materialInfo, setMaterialInfo] = useState<MaterialResponse | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    const getCleanTitle = (url: string, id: number | string) => {
+        try {
+            const parts = url.split('/');
+            let filename = parts[parts.length - 1];
+            filename = decodeURIComponent(filename);
+            if (filename.length > 30) return `Material Document #${id}`;
+            return filename.split('.')[0] || `Material Document #${id}`;
+        } catch {
+            return `Material Document #${id}`;
+        }
     };
+
+    const getFileExt = (url: string) => {
+        try {
+            return url.split('.').pop()?.toLowerCase() || '';
+        } catch {
+            return '';
+        }
+    }
+
+    const getDownloadUrl = (url: string) => {
+        if (!url.includes("cloudinary.com")) return url;
+        const parts = url.split("/upload/");
+        if (parts.length === 2) {
+            return `${parts[0]}/upload/fl_attachment/${parts[1]}`;
+        }
+        return url;
+    };
+
+    useEffect(() => {
+        const fetchMaterial = async () => {
+            setIsLoading(true);
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) {
+                    setError("You must be logged in to view materials.");
+                    setIsLoading(false);
+                    return;
+                }
+
+                const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
+                const response = await fetch(`${apiUrl}/api/material/${subjectId}?size=100`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const materials: MaterialResponse[] = data.content || [];
+                    const targetMaterial = materials.find(m => m.id.toString() === materialId);
+                    if (targetMaterial) {
+                        setMaterialInfo(targetMaterial);
+                    } else {
+                        setError("Material not found.");
+                    }
+                } else {
+                    setError("Failed to communicate with the vault.");
+                }
+            } catch (err) {
+                console.error(err);
+                setError("Network error occurred.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchMaterial();
+    }, [subjectId, materialId]);
+
+    if (isLoading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center bg-app-bg text-main">
+                <div className="flex flex-col items-center gap-4">
+                    <svg className="animate-spin h-10 w-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p className="font-bold tracking-widest uppercase text-sm">Accessing the Vault...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error || !materialInfo) {
+        return (
+            <div className="flex min-h-screen flex-col bg-app-bg text-ink font-body">
+                <header className="sticky top-0 z-50 flex h-20 items-center justify-between border-b border-border-subtle bg-surface/80 px-8 backdrop-blur-md lg:px-16">
+                    <Link href="/" className="font-heading text-2xl font-bold text-main">Classroom Buddy</Link>
+                </header>
+                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-graphite">
+                    <h2 className="text-2xl font-bold text-main mb-2">Access Denied</h2>
+                    <p>{error || "Could not locate this material."}</p>
+                    <Link href={`/dashboard/${subjectId}`} className="mt-6 px-6 py-2 rounded-btn bg-main/10 text-main font-bold hover:bg-main hover:text-white transition-colors">
+                        Return to Subject
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
+    const title = getCleanTitle(materialInfo.url, materialInfo.id);
+    const downloadUrl = getDownloadUrl(materialInfo.url);
+    const fileExt = getFileExt(materialInfo.url);
+    const isImage = ["jpg", "jpeg", "png", "webp", "gif"].includes(fileExt);
 
     return (
         <div className="flex min-h-screen flex-col bg-app-bg text-ink font-body">
@@ -47,44 +139,59 @@ export default function MaterialDetailsPage({ params }: { params: Promise<{ id: 
                     <div className="flex flex-col">
                         <div className="flex items-center gap-3 mb-4">
                             <span className="text-[10px] font-bold px-3 py-1 rounded-md bg-secondary/20 text-secondary uppercase tracking-widest">
-                                {materialInfo.course}
+                                ID: #{materialInfo.id}
                             </span>
                         </div>
-                        <h1 className="font-heading text-4xl font-bold text-main mb-3">
-                            {materialInfo.title}
+                        <h1 className="font-heading text-4xl font-bold text-main mb-3 break-all">
+                            {title}
                         </h1>
                         <div className="flex items-center gap-4 text-sm text-graphite">
                             <div className="flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
-                                <span>Shelved by <span className="font-bold text-ink">{materialInfo.author}</span></span>
+                                <span>Shelved by <span className="font-bold text-ink">{materialInfo.username || "Unknown"}</span></span>
                             </div>
                             <span>•</span>
                             <div className="flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2" /><line x1="16" x2="16" y1="2" y2="6" /><line x1="8" x2="8" y1="2" y2="6" /><line x1="3" x2="21" y1="10" y2="10" /></svg>
-                                <span>{materialInfo.date}</span>
+                                <span>{new Date(materialInfo.createdAt).toLocaleDateString()}</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="flex shrink-0 gap-3">
-                        <button className="h-12 px-6 rounded-btn bg-main text-white font-bold transition-all hover:bg-main/90 shadow-soft flex items-center gap-2">
+                        <a
+                            href={downloadUrl}
+                            download
+                            className="h-12 px-6 rounded-btn bg-main text-white font-bold transition-all hover:bg-main/90 shadow-soft flex items-center gap-2"
+                        >
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></svg>
                             Download File
-                        </button>
+                        </a>
                     </div>
                 </div>
 
-                <div className="flex-1 w-full bg-surface border border-border-subtle rounded-3xl shadow-sm overflow-hidden flex flex-col min-h-[600px]">
+                <div className="flex-1 w-full bg-surface border border-border-subtle rounded-3xl shadow-sm overflow-hidden flex flex-col min-h-[700px]">
                     <div className="bg-main/5 px-6 py-4 border-b border-border-subtle flex justify-between items-center">
                         <span className="text-xs font-bold uppercase tracking-widest text-graphite">Document Viewer</span>
+                        <a href={materialInfo.url} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-main hover:underline">Open in new tab</a>
                     </div>
 
-                    <div className="flex-1 flex flex-col items-center justify-center bg-gray-50/50 p-8 text-center text-graphite">
-                        <svg className="mb-6 opacity-20" xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>
-                        <h3 className="text-xl font-bold text-ink mb-2">Material Vault Access</h3>
-                        <p className="max-w-md">
-                            This pane will render the actual Cloudinary PDF or Image file once the backend provides the <code>public_id</code> string.
-                        </p>
+                    <div className="flex-1 flex flex-col bg-gray-50/50 w-full relative">
+                        {isImage ? (
+                            <div className="w-full h-full flex items-center justify-center p-8">
+                                <img
+                                    src={materialInfo.url}
+                                    alt={title}
+                                    className="max-w-full max-h-full object-contain rounded-lg shadow-md"
+                                />
+                            </div>
+                        ) : (
+                            <iframe
+                                src={materialInfo.url}
+                                className="w-full h-full absolute inset-0"
+                                title={title}
+                            />
+                        )}
                     </div>
                 </div>
             </main>

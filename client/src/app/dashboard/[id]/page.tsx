@@ -107,7 +107,7 @@ export default function SubjectDetailsPage({ params }: { params: Promise<{ id: s
                     ) : (
                         <div className="flex flex-col gap-4">
                             {materials.map((mat) => (
-                                <a key={mat.id} href={mat.url} target="_blank" rel="noopener noreferrer" className="block group flex flex-col md:flex-row md:items-center justify-between p-6 rounded-[24px] border border-border-subtle bg-surface transition-all hover:border-main/50 hover:shadow-soft gap-6">
+                                <Link key={mat.id} href={`/dashboard/${subjectId}/${mat.id}`} className="block group flex flex-col md:flex-row md:items-center justify-between p-6 rounded-[24px] border border-border-subtle bg-surface transition-all hover:border-main/50 hover:shadow-soft gap-6">
                                     <div className="flex items-start md:items-center gap-6">
                                         <div className="h-14 w-14 shrink-0 rounded-2xl bg-app-bg text-main flex items-center justify-center border border-border-subtle transition-colors group-hover:bg-main group-hover:text-white">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" /><polyline points="14 2 14 8 20 8" /></svg>
@@ -148,7 +148,7 @@ export default function SubjectDetailsPage({ params }: { params: Promise<{ id: s
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 6H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" /><polyline points="15 3 21 3 21 9" /><line x1="10" x2="21" y1="14" y2="3" /></svg>
                                         </div>
                                     </div>
-                                </a>
+                                </Link>
                             ))}
                         </div>
                     )}
