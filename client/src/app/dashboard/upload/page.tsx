@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 export default function UploadMaterialPage() {
     const router = useRouter();
     const [formData, setFormData] = useState({
-        title: "",
         subject: "computer-science"
     });
     const [file, setFile] = useState<File | null>(null);
@@ -62,8 +61,8 @@ export default function UploadMaterialPage() {
             });
 
             if (response.ok) {
-                alert(`Material "${formData.title}" uploaded successfully!`);
-                setFormData({ title: "", subject: "computer-science" });
+                alert("Material uploaded successfully!");
+                setFormData({ subject: "computer-science" });
                 setFile(null);
             } else {
                 const errorData = await response.json().catch(() => null);
@@ -104,21 +103,6 @@ export default function UploadMaterialPage() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-8 rounded-[24px] border border-border-subtle bg-surface p-10 shadow-soft">
-                    <div className="flex flex-col gap-2">
-                        <label htmlFor="title" className="text-xs font-bold uppercase tracking-wider text-ink">
-                            Material Title
-                        </label>
-                        <input
-                            id="title"
-                            type="text"
-                            value={formData.title}
-                            onChange={handleChange}
-                            placeholder="e.g., Intro to Neural Networks - Lecture Notes"
-                            required
-                            className="h-14 rounded-input border border-border-subtle bg-surface px-4 text-ink outline-none focus:ring-2 focus:ring-main/20 font-medium transition-all"
-                        />
-                    </div>
-
                     <div className="flex flex-col gap-2">
                         <label htmlFor="subject" className="text-xs font-bold uppercase tracking-wider text-ink">
                             Academic Subject
