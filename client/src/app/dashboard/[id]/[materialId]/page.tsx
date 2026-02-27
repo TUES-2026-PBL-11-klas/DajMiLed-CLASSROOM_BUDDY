@@ -18,13 +18,18 @@ export default function MaterialDetailsPage({ params }: { params: Promise<{ id: 
 
     const [material, setMaterial] = useState<MaterialResponse | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         const fetchMaterial = async () => {
             setIsLoading(true);
             try {
                 const token = localStorage.getItem("token");
-                if (!token) return;
+                if (!token) {
+                    setError("You must be logged in to view materials.");
+                    setIsLoading(false);
+                    return;
+                }
 
                 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8081";
                 const response = await fetch(`${apiUrl}/api/material/${subjectId}?size=100`, {
@@ -35,10 +40,17 @@ export default function MaterialDetailsPage({ params }: { params: Promise<{ id: 
                     const data = await response.json();
                     const content: MaterialResponse[] = data.data?.content || data.content || [];
                     const foundMaterial = content.find(m => m.id === materialId);
-                    setMaterial(foundMaterial || null);
+                    if (foundMaterial) {
+                        setMaterial(foundMaterial);
+                    } else {
+                        setError("Material not found.");
+                    }
+                } else {
+                    setError("Failed to communicate with the vault.");
                 }
-            } catch (error) {
-                console.error("Error fetching material detail:", error);
+            } catch (err) {
+                console.error("Error fetching material detail:", err);
+                setError("Network error occurred.");
             } finally {
                 setIsLoading(false);
             }
@@ -66,13 +78,16 @@ export default function MaterialDetailsPage({ params }: { params: Promise<{ id: 
 
     if (isLoading) {
         return (
-            <div className="flex min-h-screen flex-col bg-app-bg text-ink font-body p-8 items-center justify-center">
-                <p className="text-main font-bold animate-pulse text-xl">Accessing Vault...</p>
+            <div className="flex min-h-screen items-center justify-center bg-app-bg text-main">
+                <div className="flex flex-col items-center gap-4">
+                    <svg className="animate-spin h-10 w-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p className="font-bold tracking-widest uppercase text-sm">Accessing the Vault...</p>
+                </div>
             </div>
         );
     }
 
-    if (!material) {
+    if (error || !material) {
         return (
             <div className="flex min-h-screen flex-col bg-app-bg text-ink font-body">
                 <header className="sticky top-0 z-50 flex h-20 items-center justify-between border-b border-border-subtle bg-surface/80 px-8 backdrop-blur-md lg:px-16">
@@ -85,15 +100,13 @@ export default function MaterialDetailsPage({ params }: { params: Promise<{ id: 
                         </Link>
                     </div>
                 </header>
-                <main className="flex-1 flex items-center justify-center p-8">
-                    <div className="text-center">
-                        <h1 className="text-3xl font-bold text-main mb-4">Material Not Found</h1>
-                        <p className="text-graphite mb-8">This resource may have been removed or does not exist.</p>
-                        <Link href={`/dashboard/${subjectId}`} className="h-12 px-6 rounded-btn bg-main text-white font-bold inline-flex items-center justify-center">
-                            Return to Discipline
-                        </Link>
-                    </div>
-                </main>
+                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-graphite">
+                    <h2 className="text-2xl font-bold text-main mb-2">Access Denied</h2>
+                    <p>{error || "This resource may have been removed or does not exist."}</p>
+                    <Link href={`/dashboard/${subjectId}`} className="mt-6 px-6 py-2 rounded-btn bg-main/10 text-main font-bold hover:bg-main hover:text-white transition-colors">
+                        Return to Discipline
+                    </Link>
+                </div>
             </div>
         );
     }
