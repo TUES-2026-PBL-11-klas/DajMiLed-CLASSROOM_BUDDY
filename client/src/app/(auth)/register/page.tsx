@@ -48,7 +48,7 @@ export default function RegisterPage() {
         }
 
         try {
-            const { confirmPassword, ...registerData } = formData;
+            const { confirmPassword: _confirmPassword, ...registerData } = formData;
 
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
             const response = await fetch(`${apiUrl}/api/auth/register`, {

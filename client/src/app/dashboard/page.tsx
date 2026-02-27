@@ -74,7 +74,7 @@ export default function DashboardPage() {
                         } else {
                             console.error("Failed to fetch count for", subject.id);
                         }
-                    } catch (e) {
+                    } catch {
                         console.error("Failed to fetch count for", subject.id);
                     }
                     return subject;

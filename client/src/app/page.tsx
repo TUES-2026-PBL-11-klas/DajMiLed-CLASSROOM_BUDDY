@@ -9,7 +9,13 @@ export default function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem("token"));
+    const checkAuth = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        setIsLoggedIn(true);
+      }
+    };
+    checkAuth();
   }, []);
   return (
     <div className="flex min-h-screen flex-col bg-app-bg text-ink font-body selection:bg-main/20">
