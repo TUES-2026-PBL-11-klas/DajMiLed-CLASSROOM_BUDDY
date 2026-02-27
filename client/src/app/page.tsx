@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import heroImage from "../../public/images/campus-hero.webp";
 
 export default function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -75,9 +76,10 @@ export default function HomePage() {
                     <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" /></svg>
                   </div>
                   <Image
-                    src="/images/campus-hero.png"
+                    src={heroImage}
                     alt="Campus Architecture"
                     fill
+                    placeholder="blur"
                     className="object-cover"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';

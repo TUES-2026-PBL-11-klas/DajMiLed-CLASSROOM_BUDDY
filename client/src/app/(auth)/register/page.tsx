@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { CAMPUS_QUOTES } from "@/lib/quotes";
+import heroImage from "../../../../public/images/campus-hero.webp";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -230,11 +231,11 @@ export default function RegisterPage() {
 
             <div className="hidden relative bg-main/10 md:flex w-[60%] flex-col items-start justify-end overflow-hidden">
                 <Image
-                    src="/images/campus-hero.png"
+                    src={heroImage}
                     alt="Campus sanctuary"
                     fill
+                    placeholder="blur"
                     className="object-cover transition-transform duration-700 hover:scale-105"
-                    priority
                 />
 
                 <div className="absolute inset-0 bg-gradient-to-t from-main/90 via-main/30 to-transparent" />
