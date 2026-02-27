@@ -39,13 +39,35 @@ public class MatrerialController {
     }
 
     @GetMapping("/{subject_name}")
-    public ResponseEntity<Page<MaterialResponse>> getMaterialsBySubject(
+    public ResponseEntity<ApiResponse> getMaterialsBySubject(
             @PathVariable String subject_name,
             @PageableDefault Pageable pageable
     ) {
         Page<MaterialResponse> materials = materialsService
-                .getMaterialsBySubject(subject_name, pageable)
-                .map(MaterialResponse::new);
-        return ResponseEntity.ok(materials);
+                .getMaterialsBySubject(subject_name, pageable);
+        ApiResponse response = new ApiResponse(
+                HttpStatus.SC_OK,
+                "Materials retrieved successfully",
+                materials
+        );
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse> getMaterialsForCurrentUser(
+            @RequestHeader("Authorization") String authHeader,
+            @PageableDefault Pageable pageable
+    ) {
+        String token = jwtProvider.extractTokenFromHeader(authHeader);
+
+        Page<MaterialResponse> materials = materialsService.getMaterialsByUser(token, pageable);
+
+        ApiResponse response = new ApiResponse(
+                HttpStatus.SC_OK,
+                "Materials retrieved successfully",
+                materials
+        );
+
+        return ResponseEntity.ok(response);
     }
 }
