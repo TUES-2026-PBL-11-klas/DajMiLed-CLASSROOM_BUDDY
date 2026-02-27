@@ -1,0 +1,73 @@
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    env_file:
+      - ./server/.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-primary:5432/classroom_buddy
+      - SPRING_DATASOURCE_USERNAME=buddy_user
+      - SPRING_DATASOURCE_PASSWORD=buddy_password
+    depends_on:
+      - db-primary
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      target: base
+    working_dir: /app
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+      - /app/.next
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8081
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    depends_on:
+      - server
+
+  db-primary:
+    image: bitnami/postgresql:latest
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=master
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
+      - POSTGRESQL_USERNAME=buddy_user
+      - POSTGRESQL_PASSWORD=buddy_password
+      - POSTGRESQL_DATABASE=classroom_buddy
+    volumes:
+      - pg_primary_data:/bitnami/postgresql
+
+  db-replica:
+    image: bitnami/postgresql:latest
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
+      - POSTGRESQL_MASTER_HOST=db-primary
+      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+      - POSTGRESQL_USERNAME=buddy_user
+      - POSTGRESQL_PASSWORD=buddy_password
+    depends_on:
+      - db-primary
+    volumes:
+      - pg_replica_data:/bitnami/postgresql
+
+volumes:
+  pg_primary_data:
+  pg_replica_data:
+
+

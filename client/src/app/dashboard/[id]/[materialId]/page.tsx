@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { use, useEffect, useState } from "react";
 
 interface MaterialResponse {
@@ -196,12 +197,13 @@ export default function MaterialDetailsPage({ params }: { params: Promise<{ id: 
                         </a>
                     </div>
 
-                    <div className="flex-1 w-full h-full bg-gray-50 flex items-center justify-center overflow-auto p-4 md:p-8">
+                    <div className="flex-1 w-full h-full bg-gray-50 flex items-center justify-center overflow-hidden p-4 md:p-8 relative min-h-[400px]">
                         {isImage(material.url) ? (
-                            <img
+                            <Image
                                 src={material.url}
                                 alt={displayName}
-                                className="max-w-full max-h-full object-contain rounded-lg shadow-sm border border-border-subtle"
+                                fill
+                                className="object-contain rounded-lg shadow-sm border border-border-subtle p-4"
                             />
                         ) : (
                             <iframe
