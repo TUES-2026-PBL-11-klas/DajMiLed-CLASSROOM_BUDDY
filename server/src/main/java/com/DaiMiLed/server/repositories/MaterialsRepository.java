@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.DaiMiLed.server.models.Material;
+import com.DaiMiLed.server.models.User;
 
 @Repository
 public interface MaterialsRepository extends JpaRepository<Material, Long> {
@@ -16,4 +17,10 @@ public interface MaterialsRepository extends JpaRepository<Material, Long> {
         countQuery = "SELECT COUNT(m) FROM Material m WHERE m.subject = :subject"
     )
     Page<Material> findBySubjectWithUser(@Param("subject") String subject, Pageable pageable);
+
+    @Query(
+        value = "SELECT m FROM Material m JOIN FETCH m.user WHERE m.user = :user",
+        countQuery = "SELECT COUNT(m) FROM Material m WHERE m.user = :user"
+    )
+    Page<Material> findByUserWithUser(@Param("user") User user, Pageable pageable);
 }

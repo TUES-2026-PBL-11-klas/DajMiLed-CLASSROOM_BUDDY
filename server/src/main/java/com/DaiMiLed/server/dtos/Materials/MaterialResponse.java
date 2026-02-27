@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MaterialResponse {
     private Long id;
+    private String username;
     private String subject;
     private String url;
     private Instant createdAt;
-    private String username;
 
     public MaterialResponse(Material material) {
         this.id = material.getId();

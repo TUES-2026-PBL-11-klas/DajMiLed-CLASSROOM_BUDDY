@@ -3,6 +3,7 @@ package com.DaiMiLed.server.services.Materials.MaterialsImpl;
 import java.io.IOException;
 import java.util.Map;
 
+import com.DaiMiLed.server.dtos.Materials.MaterialResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -69,7 +70,20 @@ public class MaterialsServiceImpl implements MaterialsService{
     }
 
     @Override
-    public Page<Material> getMaterialsBySubject(String subject, Pageable pageable) {
-        return materialsRepository.findBySubjectWithUser(subject, pageable);
+    public Page<MaterialResponse> getMaterialsBySubject(String subject, Pageable pageable) {
+        return materialsRepository
+                .findBySubjectWithUser(subject, pageable)
+                .map(MaterialResponse::new);
+    }
+
+    @Override
+    public Page<MaterialResponse> getMaterialsByUser(String token, Pageable pageable) {
+        String username = jwtProvider.getUsernameFromToken(token);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ObjectNotFound("Object user not found. Invalid token maybe."));
+
+        return materialsRepository
+                .findByUserWithUser(user, pageable)
+                .map(MaterialResponse::new);
     }
 }
