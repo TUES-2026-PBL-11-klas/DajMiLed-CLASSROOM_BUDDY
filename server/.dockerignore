@@ -1,0 +1,43 @@
+# =============================
+# Build outputs
+# =============================
+target/*
+!target/*.jar
+
+# Maven wrapper cache (optional)
+.mvn/wrapper/maven-wrapper.jar
+
+# =============================
+# Secrets / environment variables
+# =============================
+.env
+*.env
+
+# =============================
+# Version control
+# =============================
+.git
+.gitignore
+.gitattributes
+
+# =============================
+# Documentation
+# =============================
+README.md
+HELP.md
+docs/
+
+# =============================
+# IDE / editor
+# =============================
+.idea/
+.vscode/
+*.iml
+
+# =============================
+# OS / temp / log files
+# =============================
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
