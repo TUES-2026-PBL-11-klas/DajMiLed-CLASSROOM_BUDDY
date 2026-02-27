@@ -44,7 +44,7 @@ export default function SubjectDetailsPage({ params }: { params: Promise<{ id: s
 
                 if (response.ok) {
                     const data = await response.json();
-                    setMaterials(data.content || []);
+                    setMaterials(data.data?.content || data.content || []);
                 } else {
                     console.error("Failed to load materials");
                 }
@@ -64,12 +64,15 @@ export default function SubjectDetailsPage({ params }: { params: Promise<{ id: s
                 <Link href="/" className="font-heading text-2xl font-bold text-main">
                     Classroom Buddy
                 </Link>
-                <div className="flex items-center gap-8">
+                <div className="flex items-center gap-6">
                     <Link href="/dashboard/upload" className="text-sm font-bold uppercase tracking-wider text-main hover:underline hidden md:block">
                         Upload Material
                     </Link>
                     <Link href="/dashboard" className="text-sm font-bold uppercase tracking-wider text-main hover:underline">
                         Back to Repository
+                    </Link>
+                    <Link href="/dashboard/profile" className="group flex h-10 w-10 items-center justify-center rounded-full border border-border-subtle bg-app-bg text-graphite transition-all hover:border-main/50 hover:bg-main/5 hover:text-main shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                     </Link>
                 </div>
             </header>
@@ -155,10 +158,9 @@ export default function SubjectDetailsPage({ params }: { params: Promise<{ id: s
                 </div>
             </main>
 
-            <footer className="py-12 bg-app-bg text-center flex flex-col items-center gap-2">
+            <footer className="py-8 bg-app-bg text-center border-t border-border-subtle">
                 <p className="text-sm font-bold uppercase tracking-wider text-main">Classroom Buddy</p>
-                <p className="text-sm font-bold uppercase tracking-wider text-main opacity-80">Designed for the pursuit of excellence.</p>
-
+                <p className="text-xs font-bold uppercase tracking-wider text-main opacity-60 mt-1">Designed for the pursuit of excellence.</p>
             </footer>
         </div>
     );

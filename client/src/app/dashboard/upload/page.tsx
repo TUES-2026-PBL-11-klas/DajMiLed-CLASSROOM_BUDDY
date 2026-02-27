@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 export default function UploadMaterialPage() {
     const router = useRouter();
     const [formData, setFormData] = useState({
-        title: "",
         subject: "computer-science"
     });
     const [file, setFile] = useState<File | null>(null);
@@ -62,8 +61,8 @@ export default function UploadMaterialPage() {
             });
 
             if (response.ok) {
-                alert(`Material "${formData.title}" uploaded successfully!`);
-                setFormData({ title: "", subject: "computer-science" });
+                alert("Material uploaded successfully!");
+                setFormData({ subject: "computer-science" });
                 setFile(null);
             } else {
                 const errorData = await response.json().catch(() => null);
@@ -83,9 +82,14 @@ export default function UploadMaterialPage() {
                 <Link href="/" className="font-heading text-2xl font-bold text-main">
                     Classroom Buddy
                 </Link>
-                <Link href="/dashboard" className="text-sm font-bold uppercase tracking-wider text-main hover:underline">
-                    Back to Repository
-                </Link>
+                <div className="flex items-center gap-6">
+                    <Link href="/dashboard" className="text-sm font-bold uppercase tracking-wider text-main hover:underline">
+                        Back to Repository
+                    </Link>
+                    <Link href="/dashboard/profile" className="group flex h-10 w-10 items-center justify-center rounded-full border border-border-subtle bg-app-bg text-graphite transition-all hover:border-main/50 hover:bg-main/5 hover:text-main shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                    </Link>
+                </div>
             </header>
 
             <main className="flex-1 px-8 py-16 lg:px-16 mx-auto w-full max-w-2xl">
@@ -99,21 +103,6 @@ export default function UploadMaterialPage() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-8 rounded-[24px] border border-border-subtle bg-surface p-10 shadow-soft">
-                    <div className="flex flex-col gap-2">
-                        <label htmlFor="title" className="text-xs font-bold uppercase tracking-wider text-ink">
-                            Material Title
-                        </label>
-                        <input
-                            id="title"
-                            type="text"
-                            value={formData.title}
-                            onChange={handleChange}
-                            placeholder="e.g., Intro to Neural Networks - Lecture Notes"
-                            required
-                            className="h-14 rounded-input border border-border-subtle bg-surface px-4 text-ink outline-none focus:ring-2 focus:ring-main/20 font-medium transition-all"
-                        />
-                    </div>
-
                     <div className="flex flex-col gap-2">
                         <label htmlFor="subject" className="text-xs font-bold uppercase tracking-wider text-ink">
                             Academic Subject
@@ -184,10 +173,9 @@ export default function UploadMaterialPage() {
                 </form>
             </main>
 
-            <footer className="py-12 bg-app-bg text-center flex flex-col items-center gap-2">
+            <footer className="py-8 bg-app-bg text-center border-t border-border-subtle">
                 <p className="text-sm font-bold uppercase tracking-wider text-main">Classroom Buddy</p>
-                <p className="text-sm font-bold uppercase tracking-wider text-main opacity-80">Designed for the pursuit of excellence.</p>
-
+                <p className="text-xs font-bold uppercase tracking-wider text-main opacity-60 mt-1">Designed for the pursuit of excellence.</p>
             </footer>
         </div>
     );
